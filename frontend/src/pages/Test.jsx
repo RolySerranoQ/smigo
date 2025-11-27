@@ -3,7 +3,7 @@ import axios from 'axios';
 import Plot from 'react-plotly.js';
 
 const HISTORY_SIZE = 50;
-const BASE_URL = 'https://smigo-backend.onrender.com';
+const BASE_URL = 'https://smigo-backend-clhr.onrender.com';
 const API_URL_ULTIMO = `${BASE_URL}/datos_vaca/ultimo`;
 const API_URL_ESTADO = `${BASE_URL}/analisis_cola`;
 

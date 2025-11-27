@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
 // 1. Definimos la URL de tu Backend en Render
-const API_URL = 'https://smigo-backend.onrender.com'; 
+const API_URL = 'https://smigo-backend-clhr.onrender.com'; 
 
 export default function Login() {
   const [isLogin, setIsLogin] = useState(true);

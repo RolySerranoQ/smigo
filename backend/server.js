@@ -14,7 +14,7 @@ const authToken = process.env.TWILIO_AUTH_TOKEN; // ¡ASEGÚRATE DE TENER ESTO E
 const clientTwilio = require('twilio')(accountSid, authToken);
 
 const WHATSAPP_FROM = 'whatsapp:+14155238886'; 
-const WHATSAPP_TO = 'whatsapp:+59171338567';   
+const WHATSAPP_TO = 'whatsapp:+59167441819';   
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -54,7 +54,10 @@ async function connectDB() {
 }
 connectDB();
 
-app.use(cors());
+//app.use(cors());
+app.use(cors({
+    origin: '*' // Permite que cualquier frontend (local o en Render) se conecte
+}));
 app.use(express.json());
 
 
@@ -175,17 +178,17 @@ async function ejecutarAnalisisPeriodico() {
 
         // 4. CONDICIÓN DE ALERTA SOLICITADA
         // Se envía mensaje SI: ITH >= 88 Y Estado es "Cola levantada"
-        if (promedioIth >= 88 && estadoAnalizado === "Cola levantada") {
+        /*if (promedioIth >= 88 && estadoAnalizado === "Cola levantada") {
             console.log("   🚨 ¡CONDICIONES CRÍTICAS CUMPLIDAS! Enviando WhatsApp...");
             await enviarAlertaWhatsApp(promedioIth, estadoAnalizado, devId);
         } else {
             console.log(`   ✅ Condiciones normales. No se envía mensaje, Estado: ${estadoAnalizado} | ITH Promedio: ${promedioIth.toFixed(2)}`);
-        }
+        }*/
 
-        /*if (promedioIth >= 30){
+        if (promedioIth >= 30){
             console.log("   🚨 ¡CONDICIONES CRÍTICAS CUMPLIDAS! Enviando WhatsApp...");
             await enviarAlertaWhatsApp(promedioIth, estadoAnalizado, devId);
-        } */
+        }
 
     } catch (error) {
         console.error("❌ Error en el monitor de alertas:", error);

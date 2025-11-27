@@ -73,7 +73,7 @@ export default function Stress() {
   useEffect(() => {
     const fetchStressData = () => {
       // USAMOS LA URL DE RENDER
-      axios.get('https://smigo-backend.onrender.com/ultimo_dato')
+      axios.get('https://smigo-backend-clhr.onrender.com/ultimo_dato')
         .then((response) => {
           const apiData = response.data;
           
