@@ -118,7 +118,7 @@ export default function Behavior() {
         {/* ENCABEZADO */}
         <div className="mb-8 text-center md:text-left">
           <h2 className="text-2xl md:text-4xl font-extrabold text-gray-800 tracking-tight">
-            🐄 Monitor de Comportamiento
+             Monitor de Comportamiento de la cola
           </h2>
           <p className="text-xs md:text-sm text-gray-500 mt-2">
             {loadingData && !hasData && 'Conectando con el dispositivo...'}
@@ -151,7 +151,7 @@ export default function Behavior() {
             {/* 2. DATOS GIROSCOPIO */}
             <div className="bg-white p-5 rounded-3xl shadow-lg border border-green-100">
               <h4 className="font-extrabold text-base md:text-lg text-gray-700 mb-4 border-b pb-2 flex items-center gap-2">
-                <span>🔄</span> Rotación (°/s)
+                <span></span> Rotación (°/s)
               </h4>
               <div className="grid grid-cols-3 gap-3">
                 {/* Eje X */}

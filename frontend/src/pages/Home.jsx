@@ -64,14 +64,14 @@ export default function Home() {
             <FeatureCard 
               icon={<Sun size={32} className="md:w-10 md:h-10" />} 
               title="Vacas Felices" 
-              desc="Controlamos la temperatura y humedad para evitar el estrés calórico que afecta la producción de leche." 
+              desc="Monitoreamos la temperatura y humedad para determinar el estrés que afecta a la vaca." 
               color="text-orange-500"
               bg="bg-orange-100"
             />
             <FeatureCard 
               icon={<Users size={32} className="md:w-10 md:h-10" />} 
               title="Más Tiempo para Ti" 
-              desc="Deja de hacer rondas nocturnas innecesarias. SMIGO hace la guardia por ti. Disfruta de tu familia." 
+              desc="Deja de hacer rondas nocturnas innecesarias. SMIGO lo hace por ti. Disfruta de tu familia." 
               color="text-blue-500"
               bg="bg-blue-100"
             />

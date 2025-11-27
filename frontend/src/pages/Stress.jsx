@@ -109,9 +109,9 @@ export default function Stress() {
   }, []);
 
   const getStatus = (val) => {
-    if (val <= 74) return { text: 'NORMAL', bg: 'bg-green-100', textCol: 'text-green-700', border: 'border-green-300', icon: '🍃' };
-    if (val <= 78) return { text: 'ALERTA', bg: 'bg-yellow-50', textCol: 'text-yellow-700', border: 'border-yellow-300', icon: '⚠️' };
-    if (val <= 84) return { text: 'PELIGRO', bg: 'bg-orange-50', textCol: 'text-orange-700', border: 'border-orange-300', icon: '🔥' };
+    if (val <= 74) return { text: 'NORMAL', bg: 'bg-green-100', textCol: 'text-green-700', border: 'border-green-300', icon: '' };
+    if (val <= 78) return { text: 'ALERTA', bg: 'bg-yellow-50', textCol: 'text-yellow-700', border: 'border-yellow-300', icon: '' };
+    if (val <= 84) return { text: 'PELIGRO', bg: 'bg-orange-50', textCol: 'text-orange-700', border: 'border-orange-300', icon: '' };
     return { text: 'EMERGENCIA', bg: 'bg-red-50', textCol: 'text-red-700', border: 'border-red-300 animate-pulse', icon: '🆘' };
   };
 
@@ -152,7 +152,7 @@ export default function Stress() {
         {/* ENCABEZADO */}
         <div className="mb-8 text-center md:text-left">
           <h2 className="text-2xl md:text-4xl font-extrabold text-gray-800 tracking-tight">
-            🌡️ Bienestar Térmico
+            Nivel de estres de la vaca
           </h2>
           <p className="text-gray-500 mt-2 text-sm">Monitoreo del Índice de Temperatura y Humedad (ITH) en tiempo real.</p>
         </div>
@@ -173,7 +173,7 @@ export default function Stress() {
               </div>
             </div>
             <p className={`text-lg md:text-2xl font-bold mt-2 ${status.textCol}`}>
-              Nivel: {status.text}
+              Nivel de estres: {status.text}
             </p>
           </div>
         </div>
@@ -189,7 +189,7 @@ export default function Stress() {
                 <p className="text-3xl font-black text-gray-800">{data.temp.toFixed(1)} <span className="text-lg text-gray-400 font-normal">°C</span></p>
               </div>
               <div className="p-3 bg-red-50 rounded-2xl">
-                <span className="text-2xl">🔥</span>
+                <span className="text-2xl"></span>
               </div>
             </div>
             <div className="flex-grow h-64 w-full">
@@ -208,7 +208,7 @@ export default function Stress() {
                 <p className="text-3xl font-black text-gray-800">{data.hum.toFixed(1)} <span className="text-lg text-gray-400 font-normal">%</span></p>
               </div>
               <div className="p-3 bg-blue-50 rounded-2xl">
-                <span className="text-2xl">💧</span>
+                <span className="text-2xl"></span>
               </div>
             </div>
             <div className="flex-grow h-64 w-full">
