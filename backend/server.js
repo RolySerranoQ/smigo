@@ -178,17 +178,17 @@ async function ejecutarAnalisisPeriodico() {
 
         // 4. CONDICIÓN DE ALERTA SOLICITADA
         // Se envía mensaje SI: ITH >= 88 Y Estado es "Cola levantada"
-        /*if (promedioIth >= 88 && estadoAnalizado === "Cola levantada") {
+        if (promedioIth >= 88 && estadoAnalizado === "Cola levantada") {
             console.log("   🚨 ¡CONDICIONES CRÍTICAS CUMPLIDAS! Enviando WhatsApp...");
             await enviarAlertaWhatsApp(promedioIth, estadoAnalizado, devId);
         } else {
             console.log(`   ✅ Condiciones normales. No se envía mensaje, Estado: ${estadoAnalizado} | ITH Promedio: ${promedioIth.toFixed(2)}`);
-        }*/
+        }
 
-        if (promedioIth >= 30){
+        /*if (promedioIth >= 30){
             console.log("   🚨 ¡CONDICIONES CRÍTICAS CUMPLIDAS! Enviando WhatsApp...");
             await enviarAlertaWhatsApp(promedioIth, estadoAnalizado, devId);
-        }
+        }*/
 
     } catch (error) {
         console.error("❌ Error en el monitor de alertas:", error);
