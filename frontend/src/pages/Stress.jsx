@@ -6,6 +6,7 @@ import axios from 'axios';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Filler);
 
+// --- TABLA Y LÓGICA DE ITH (INTACTA) ---
 const STRESS_TABLE = [
   [65, 66, 67, 68, 69, 69, 70, 71, 72, 73, 73],
   [66, 67, 68, 69, 70, 71, 71, 72, 73, 74, 75],
@@ -34,13 +35,12 @@ function calculateIthFromTable(T, RH) {
   const TIndex = safeT - MIN_TEMP;
 
   if (TIndex < 0 || TIndex >= TEMP_RANGE || safeRHIndex < 0 || safeRHIndex > 10) {
-    console.error(`ITH: Datos fuera de rango seguro. T=${T}, RH=${RH}`);
-    return 0;
+    return 0; // Fuera de rango
   }
-
   return STRESS_TABLE[TIndex][safeRHIndex];
 }
 
+// --- COMPONENTE PRINCIPAL ---
 export default function Stress() {
   const [data, setData] = useState({ temp: 0, hum: 0 });
   const [ith, setIth] = useState(0);
@@ -48,21 +48,37 @@ export default function Stress() {
   const [chartData, setChartData] = useState({
     labels: [],
     datasets: [
-      { label: 'Temp (°C)', data: [], borderColor: '#d32f2f', backgroundColor: 'rgba(211, 47, 47, 0.1)', fill: true },
-      { label: 'Humedad (%)', data: [], borderColor: '#1976D2', backgroundColor: 'rgba(25, 118, 210, 0.1)', fill: true }
+      { 
+        label: 'Temp (°C)', 
+        data: [], 
+        borderColor: '#EF4444', // Red-500
+        backgroundColor: 'rgba(239, 68, 68, 0.1)', 
+        fill: true,
+        tension: 0.4, // Curvas suaves
+        pointRadius: 3
+      },
+      { 
+        label: 'Humedad (%)', 
+        data: [], 
+        borderColor: '#3B82F6', // Blue-500
+        backgroundColor: 'rgba(59, 130, 246, 0.1)', 
+        fill: true,
+        tension: 0.4, // Curvas suaves
+        pointRadius: 3
+      }
     ]
   });
 
   // Polling con setInterval
   useEffect(() => {
-    const interval = setInterval(() => {
-      axios.get('http://localhost:3000/ultimo_dato')
+    const fetchStressData = () => {
+      // USAMOS LA URL DE RENDER
+      axios.get('https://smigo-backend.onrender.com/ultimo_dato')
         .then((response) => {
-          const data = response.data;
-          console.log("Datos recibidos:", data);
-
-          const T = parseFloat(data.temperatura || 0);
-          const RH = parseFloat(data.humedad || 0);
+          const apiData = response.data;
+          
+          const T = parseFloat(apiData.temperatura || 0);
+          const RH = parseFloat(apiData.humedad || 0);
           const ITH_val = calculateIthFromTable(T, RH);
 
           setData({ temp: T, hum: RH });
@@ -71,9 +87,9 @@ export default function Stress() {
           // Actualizar gráfica
           const timeNow = new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
           setChartData(prev => {
-            const newLabels = [...prev.labels, timeNow].slice(-10);
-            const newTemp = [...prev.datasets[0].data, T].slice(-10);
-            const newHum = [...prev.datasets[1].data, RH].slice(-10);
+            const newLabels = [...prev.labels, timeNow].slice(-15); // Muestra últimos 15 puntos
+            const newTemp = [...prev.datasets[0].data, T].slice(-15);
+            const newHum = [...prev.datasets[1].data, RH].slice(-15);
             return {
               labels: newLabels,
               datasets: [
@@ -83,44 +99,126 @@ export default function Stress() {
             };
           });
         })
-        .catch((error) => {
-          console.error("❌ Error al obtener los datos:", error);
-        });
-    }, 5000); // Realiza la solicitud cada 5 segundos
+        .catch((error) => console.error("Error fetching data:", error));
+    };
 
-    // Limpiar el intervalo al desmontar el componente
+    fetchStressData();
+    const interval = setInterval(fetchStressData, 5000); 
+
     return () => clearInterval(interval);
   }, []);
 
   const getStatus = (val) => {
-    if (val <= 74) return { text: 'NORMAL', color: 'bg-green-100 text-green-800 border-green-500', icon: '🙂' };
-    if (val <= 78) return { text: 'ALERTA', color: 'bg-yellow-100 text-yellow-800 border-yellow-500', icon: '😐' };
-    if (val <= 84) return { text: 'PELIGRO', color: 'bg-orange-100 text-orange-800 border-orange-500', icon: '😟' };
-    return { text: 'EMERGENCIA', color: 'bg-red-200 text-red-900 border-red-700 animate-pulse', icon: '🥵' };
+    if (val <= 74) return { text: 'NORMAL', bg: 'bg-green-100', textCol: 'text-green-700', border: 'border-green-300', icon: '🍃' };
+    if (val <= 78) return { text: 'ALERTA', bg: 'bg-yellow-50', textCol: 'text-yellow-700', border: 'border-yellow-300', icon: '⚠️' };
+    if (val <= 84) return { text: 'PELIGRO', bg: 'bg-orange-50', textCol: 'text-orange-700', border: 'border-orange-300', icon: '🔥' };
+    return { text: 'EMERGENCIA', bg: 'bg-red-50', textCol: 'text-red-700', border: 'border-red-300 animate-pulse', icon: '🆘' };
   };
 
   const status = getStatus(ith);
 
-  return (
-    <div className="container mx-auto p-4 pb-20">
-      <h2 className="text-3xl font-bold text-[#2E7D32] mb-6">🌡️ Bienestar Térmico Bovino</h2>
-      
-      <div className={`card p-8 rounded-2xl text-center mb-8 border-4 ${status.color} shadow-xl`}>
-        <h3 className="text-xl font-bold uppercase tracking-widest opacity-70">Índice ITH</h3>
-        <div className="text-6xl my-4">{status.icon} {status.text}</div>
-        <p className="text-2xl font-bold">ITH Calculado: <span className="text-4xl">{ith}</span></p>
-      </div>
+  // Opciones comunes para las gráficas
+  const commonOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: 'rgba(255, 255, 255, 0.9)',
+        titleColor: '#1f2937',
+        bodyColor: '#1f2937',
+        borderColor: '#e5e7eb',
+        borderWidth: 1,
+        padding: 10,
+        cornerRadius: 8,
+      }
+    },
+    scales: {
+      x: { grid: { display: false }, ticks: { font: { size: 10 } } },
+      y: { grid: { color: '#f3f4f6' }, ticks: { font: { size: 10 } } }
+    },
+    interaction: {
+      mode: 'nearest',
+      axis: 'x',
+      intersect: false
+    }
+  };
 
-      <div className="grid md:grid-cols-2 gap-6">
-        <div className="bg-white p-6 rounded-xl shadow-md">
-          <h4 className="text-red-600 font-bold text-xl mb-2">Temperatura Ambiente</h4>
-          <p className="text-4xl font-bold mb-4">{data.temp.toFixed(1)} °C</p>
-          <Line data={{labels: chartData.labels, datasets: [chartData.datasets[0]]}} options={{scales: {y: {min: 20, max: 40}}}} />
+  return (
+    // FONDO VERDE BAJITO PARA TODA LA PANTALLA
+    <div className="min-h-screen bg-green-50 font-sans p-4 md:p-8 pb-24">
+      <div className="max-w-7xl mx-auto">
+        
+        {/* ENCABEZADO */}
+        <div className="mb-8 text-center md:text-left">
+          <h2 className="text-2xl md:text-4xl font-extrabold text-gray-800 tracking-tight">
+            🌡️ Bienestar Térmico
+          </h2>
+          <p className="text-gray-500 mt-2 text-sm">Monitoreo del Índice de Temperatura y Humedad (ITH) en tiempo real.</p>
         </div>
-        <div className="bg-white p-6 rounded-xl shadow-md">
-          <h4 className="text-blue-600 font-bold text-xl mb-2">Humedad Relativa</h4>
-          <p className="text-4xl font-bold mb-4">{data.hum.toFixed(1)} %</p>
-          <Line data={{labels: chartData.labels, datasets: [chartData.datasets[1]]}} options={{scales: {y: {min: 0, max: 100}}}} />
+        
+        {/* TARJETA PRINCIPAL: ITH */}
+        <div className={`p-8 rounded-3xl text-center mb-8 shadow-xl border-2 transition-all duration-500 bg-white ${status.border}`}>
+          <div className="flex flex-col items-center justify-center">
+            <span className={`px-4 py-1 rounded-full text-xs font-bold uppercase tracking-widest mb-4 ${status.bg} ${status.textCol}`}>
+              Estado Actual
+            </span>
+            <div className="flex items-center gap-4 mb-2">
+              <span className="text-6xl md:text-7xl">{status.icon}</span>
+              <div className="text-left">
+                <div className={`text-4xl md:text-6xl font-black ${status.textCol}`}>
+                  {ith}
+                </div>
+                <div className="text-sm text-gray-400 font-medium">Índice ITH</div>
+              </div>
+            </div>
+            <p className={`text-lg md:text-2xl font-bold mt-2 ${status.textCol}`}>
+              Nivel: {status.text}
+            </p>
+          </div>
+        </div>
+
+        {/* GRID DE GRÁFICAS */}
+        <div className="grid md:grid-cols-2 gap-6 lg:gap-8">
+          
+          {/* TARJETA TEMPERATURA */}
+          <div className="bg-white p-6 rounded-3xl shadow-lg border border-green-100 flex flex-col">
+            <div className="flex justify-between items-center mb-6">
+              <div>
+                <h4 className="text-gray-500 font-bold text-sm uppercase tracking-wide">Temperatura</h4>
+                <p className="text-3xl font-black text-gray-800">{data.temp.toFixed(1)} <span className="text-lg text-gray-400 font-normal">°C</span></p>
+              </div>
+              <div className="p-3 bg-red-50 rounded-2xl">
+                <span className="text-2xl">🔥</span>
+              </div>
+            </div>
+            <div className="flex-grow h-64 w-full">
+              <Line 
+                data={{labels: chartData.labels, datasets: [chartData.datasets[0]]}} 
+                options={{ ...commonOptions, scales: { ...commonOptions.scales, y: { min: 20, max: 45 } } }} 
+              />
+            </div>
+          </div>
+
+          {/* TARJETA HUMEDAD */}
+          <div className="bg-white p-6 rounded-3xl shadow-lg border border-green-100 flex flex-col">
+            <div className="flex justify-between items-center mb-6">
+              <div>
+                <h4 className="text-gray-500 font-bold text-sm uppercase tracking-wide">Humedad Relativa</h4>
+                <p className="text-3xl font-black text-gray-800">{data.hum.toFixed(1)} <span className="text-lg text-gray-400 font-normal">%</span></p>
+              </div>
+              <div className="p-3 bg-blue-50 rounded-2xl">
+                <span className="text-2xl">💧</span>
+              </div>
+            </div>
+            <div className="flex-grow h-64 w-full">
+              <Line 
+                data={{labels: chartData.labels, datasets: [chartData.datasets[1]]}} 
+                options={{ ...commonOptions, scales: { ...commonOptions.scales, y: { min: 0, max: 100 } } }} 
+              />
+            </div>
+          </div>
+
         </div>
       </div>
     </div>

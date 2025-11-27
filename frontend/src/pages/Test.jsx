@@ -3,8 +3,9 @@ import axios from 'axios';
 import Plot from 'react-plotly.js';
 
 const HISTORY_SIZE = 50;
-const API_URL_ULTIMO = 'http://localhost:3000/datos_vaca/ultimo';
-const API_URL_ESTADO = 'http://localhost:3000/analisis_cola';
+const BASE_URL = 'https://smigo-backend.onrender.com';
+const API_URL_ULTIMO = `${BASE_URL}/datos_vaca/ultimo`;
+const API_URL_ESTADO = `${BASE_URL}/analisis_cola`;
 
 export default function Behavior() {
   // --- ESTADOS DE SENSORES ---
@@ -83,154 +84,171 @@ export default function Behavior() {
   
   const loading = loadingEstado; 
 
-  // Definición de Colores según tu requerimiento
   const getCardStyle = () => {
-    // Si hay alerta inmediata (sensor brusco), priorizamos rojo
     if (alertImmediate) return 'text-red-600';
 
     switch (estadoCola) {
-      case 'Normal':
-        return 'text-green-600'; // VERDE
-      case 'Cola levantada':
-        return 'text-red-600';   // ROJO
-      case 'Vaca hechada':
-        return 'text-gray-500';  // GRIS / PLOMO
-      default:
-        return 'text-gray-300';  // Desconocido
+      case 'Normal': return 'text-green-600'; 
+      case 'Cola levantada': return 'text-red-600';   
+      case 'Vaca hechada': return 'text-gray-500';  
+      default: return 'text-gray-300';  
     }
   };
 
   const getMessage = () => {
-    if (alertImmediate) return 'Estado de la actividad Bovina';
+    if (alertImmediate) return '¡MOVIMIENTO BRUSCO DETECTADO! (>250°/s)';
     switch (estadoCola) {
-      case 'Normal':
-        return 'Nivel de actividad normal. Giroscopio estable.';
-      case 'Cola levantada':
-        return 'Movimiento de cola levantada detectado. Posible alerta.';
-      case 'Vaca hechada':
-        return 'Vaca en reposo anómalo. Revisión recomendada.';
-      default:
-        return 'Esperando datos para análisis...';
+      case 'Normal': return 'Nivel de actividad normal. Giroscopio estable.';
+      case 'Cola levantada': return 'Movimiento de cola levantada detectado. Posible alerta.';
+      case 'Vaca hechada': return 'Vaca en reposo anómalo. Revisión recomendada.';
+      default: return 'Esperando datos para análisis...';
     }
   };
 
-  // Datos para gráfica
   const historyX = gyroHistory.map((d) => d.x);
   const historyY = gyroHistory.map((d) => d.y);
   const historyZ = gyroHistory.map((d) => d.z);
   const formattedLastUpdate = lastUpdate ? new Date(lastUpdate).toLocaleString() : '—';
 
   return (
-    <div className="container mx-auto p-4 pb-20 bg-gray-50 min-h-screen font-sans">
-      <h2 className="text-4xl font-extrabold text-gray-800 mb-2 tracking-tight">
-        🐄 Monitor de Comportamiento (Parto)
-      </h2>
-
-      <p className="text-sm text-gray-500 mb-6">
-        {loadingData && !hasData && 'Cargando datos...'}
-        {!loadingData && hasData && (
-          <>Último dato: <span className="font-semibold text-gray-700">{formattedLastUpdate}</span></>
-        )}
-      </p>
-
-      <div className="grid lg:grid-cols-3 gap-8">
+    <div className="min-h-screen bg-gray-50 font-sans p-4 md:p-8 pb-24">
+      <div className="max-w-7xl mx-auto">
         
-        {/* COLUMNA IZQUIERDA */}
-        <div className="lg:col-span-1 space-y-8">
+        {/* ENCABEZADO */}
+        <div className="mb-8 text-center md:text-left">
+          <h2 className="text-2xl md:text-4xl font-extrabold text-gray-800 tracking-tight">
+            🐄 Monitor de Comportamiento
+          </h2>
+          <p className="text-xs md:text-sm text-gray-500 mt-2">
+            {loadingData && !hasData && 'Conectando con el dispositivo...'}
+            {!loadingData && hasData && (
+              <>
+                Último dato: <span className="font-semibold text-gray-700">{formattedLastUpdate}</span>
+              </>
+            )}
+            {errorData && <span className="text-red-600 font-medium block mt-1">Error: {errorData}</span>}
+          </p>
+        </div>
+
+        {/* GRID PRINCIPAL */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
           
-          {/* --- TARJETA DE ESTADO (CÓDIGO INSERTADO) --- */}
-          <div className="p-6 rounded-3xl text-center shadow-xl border-4 transition-all duration-500 bg-white border-gray-200">
-            <h3 className="text-gray-500 font-bold uppercase text-sm tracking-widest">ESTADO DE ACTIVIDAD</h3>
-            <div
-              className={`text-5xl font-black my-4 transition-colors duration-500 ${getCardStyle()}`}
-            >
-              {loading ? 'Cargando...' : estadoCola || 'SIN DATOS'}
+          {/* --- COLUMNA IZQUIERDA: TARJETAS DE DATOS --- */}
+          <div className="lg:col-span-1 space-y-6">
+            
+            {/* 1. TARJETA ESTADO PRINCIPAL */}
+            <div className="bg-white p-6 rounded-3xl shadow-lg border-2 border-gray-100 transition-all duration-300 hover:shadow-xl text-center">
+              <h3 className="text-gray-400 font-bold uppercase text-xs tracking-[0.2em]">ESTADO ACTUAL</h3>
+              <div className={`text-3xl md:text-5xl font-black my-4 transition-colors duration-500 ${getCardStyle()}`}>
+                {loading ? 'Cargando...' : estadoCola || 'SIN DATOS'}
+              </div>
+              <p className="text-sm md:text-base font-medium text-gray-600 leading-relaxed px-2">
+                {loading ? 'Analizando patrones...' : getMessage()}
+              </p>
             </div>
-            <p className="text-base font-medium mt-2 text-gray-600">
-              {loading ? 'Cargando estado de la cola...' : getMessage()}
-            </p>
-          </div>
-          {/* ------------------------------------------- */}
 
-          {/* DATOS GIROSCOPIO */}
-          <div className="bg-white p-6 rounded-3xl shadow-xl">
-            <h4 className="font-extrabold text-lg text-gray-700 mb-4 border-b pb-2">Rotación (°/s)</h4>
-            <div className="grid grid-cols-3 text-center gap-3">
-              <div className={`p-3 rounded-xl border-2 ${Math.abs(gyro.x) > 250 ? 'bg-red-50 border-red-300' : 'bg-green-50 border-green-300'}`}>
-                <div className="text-xs text-gray-500 font-medium">Eje X</div>
-                <div className="font-mono text-xl font-bold text-gray-800">{hasData ? gyro.x.toFixed(0) : '--'}</div>
+            {/* 2. DATOS GIROSCOPIO */}
+            <div className="bg-white p-5 rounded-3xl shadow-lg border border-gray-100">
+              <h4 className="font-extrabold text-base md:text-lg text-gray-700 mb-4 border-b pb-2 flex items-center gap-2">
+                <span>🔄</span> Rotación (°/s)
+              </h4>
+              <div className="grid grid-cols-3 gap-3">
+                {/* Eje X */}
+                <div className={`p-3 rounded-2xl border-2 transition-colors ${Math.abs(gyro.x) > 250 ? 'bg-red-50 border-red-200' : 'bg-green-50 border-green-200'}`}>
+                  <div className="text-[10px] uppercase text-gray-500 font-bold mb-1">Eje X</div>
+                  <div className="font-mono text-lg md:text-xl font-bold text-gray-800 truncate">
+                    {hasData ? gyro.x.toFixed(0) : '--'}
+                  </div>
+                </div>
+                {/* Eje Y */}
+                <div className="p-3 rounded-2xl border-2 border-gray-100 bg-gray-50">
+                  <div className="text-[10px] uppercase text-gray-500 font-bold mb-1">Eje Y</div>
+                  <div className="font-mono text-lg md:text-xl font-bold text-gray-800 truncate">
+                    {hasData ? gyro.y.toFixed(0) : '--'}
+                  </div>
+                </div>
+                {/* Eje Z */}
+                <div className="p-3 rounded-2xl border-2 border-gray-100 bg-gray-50">
+                  <div className="text-[10px] uppercase text-gray-500 font-bold mb-1">Eje Z</div>
+                  <div className="font-mono text-lg md:text-xl font-bold text-gray-800 truncate">
+                    {hasData ? gyro.z.toFixed(0) : '--'}
+                  </div>
+                </div>
               </div>
-              <div className="bg-gray-50 p-3 rounded-xl border-2 border-gray-200">
-                <div className="text-xs text-gray-500 font-medium">Eje Y</div>
-                <div className="font-mono text-xl font-bold text-gray-800">{hasData ? gyro.y.toFixed(0) : '--'}</div>
-              </div>
-              <div className="bg-gray-50 p-3 rounded-xl border-2 border-gray-200">
-                <div className="text-xs text-gray-500 font-medium">Eje Z</div>
-                <div className="font-mono text-xl font-bold text-gray-800">{hasData ? gyro.z.toFixed(0) : '--'}</div>
+            </div>
+
+            {/* 3. DATOS ACELERÓMETRO */}
+            <div className="bg-white p-5 rounded-3xl shadow-lg border border-gray-100">
+              <h4 className="font-extrabold text-base md:text-lg text-gray-700 mb-4 border-b pb-2 flex items-center gap-2">
+                <span>⚡</span> Aceleración (G)
+              </h4>
+              <div className="grid grid-cols-3 gap-3">
+                {['X', 'Y', 'Z'].map((axis, i) => (
+                  <div key={axis} className="p-3 rounded-2xl border-2 border-gray-100 bg-gray-50 text-center">
+                    <div className="text-[10px] uppercase text-gray-500 font-bold mb-1">Eje {axis}</div>
+                    <div className="font-mono text-lg md:text-xl font-bold text-gray-800 truncate">
+                      {hasData ? (i === 0 ? accel.x : i === 1 ? accel.y : accel.z).toFixed(2) : '--'}
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
 
-          {/* DATOS ACELERÓMETRO */}
-          <div className="bg-white p-6 rounded-3xl shadow-xl">
-            <h4 className="font-extrabold text-lg text-gray-700 mb-4 border-b pb-2">Aceleración (G)</h4>
-            <div className="grid grid-cols-3 text-center gap-3">
-              <div className="bg-gray-50 p-3 rounded-xl border-2 border-gray-200">
-                <div className="text-xs text-gray-500 font-medium">Eje X</div>
-                <div className="font-mono text-xl font-bold text-gray-800">{hasData ? accel.x.toFixed(2) : '--'}</div>
+          {/* --- COLUMNA DERECHA: GRÁFICO 3D --- */}
+          <div className="lg:col-span-2">
+            <div className="bg-white p-4 md:p-6 rounded-3xl shadow-lg border border-gray-100 h-[450px] md:h-[550px] lg:h-[600px] flex flex-col relative overflow-hidden">
+              <div className="absolute top-6 left-6 z-10 pointer-events-none">
+                <h4 className="font-extrabold text-lg text-gray-700 bg-white/80 backdrop-blur-sm px-3 py-1 rounded-lg inline-block">
+                  Historial 3D
+                </h4>
+                <p className="text-xs text-gray-500 bg-white/80 backdrop-blur-sm px-3 py-1 rounded-lg inline-block mt-1">
+                  Rastro de movimiento en tiempo real
+                </p>
               </div>
-              <div className="bg-gray-50 p-3 rounded-xl border-2 border-gray-200">
-                <div className="text-xs text-gray-500 font-medium">Eje Y</div>
-                <div className="font-mono text-xl font-bold text-gray-800">{hasData ? accel.y.toFixed(2) : '--'}</div>
-              </div>
-              <div className="bg-gray-50 p-3 rounded-xl border-2 border-gray-200">
-                <div className="text-xs text-gray-500 font-medium">Eje Z</div>
-                <div className="font-mono text-xl font-bold text-gray-800">{hasData ? accel.z.toFixed(2) : '--'}</div>
+              
+              <div className="flex-grow w-full h-full">
+                <Plot
+                  data={[
+                    {
+                      type: 'scatter3d',
+                      mode: 'lines',
+                      x: historyX, y: historyY, z: historyZ,
+                      name: 'Rastro',
+                      line: { width: 5, color: '#4CAF50', opacity: 0.8 },
+                    },
+                    {
+                      type: 'scatter3d',
+                      mode: 'markers',
+                      x: [gyro.x], y: [gyro.y], z: [gyro.z],
+                      name: 'Actual',
+                      marker: { size: 10, color: alertImmediate ? '#EF4444' : '#F59E0B', symbol: 'circle', line: {width: 2, color: 'white'} },
+                    },
+                  ]}
+                  layout={{
+                    autosize: true,
+                    paper_bgcolor: 'rgba(0,0,0,0)',
+                    plot_bgcolor: 'rgba(0,0,0,0)',
+                    scene: {
+                      xaxis: { title: 'X', backgroundcolor: '#f9fafb', gridcolor: '#e5e7eb' },
+                      yaxis: { title: 'Y', backgroundcolor: '#f9fafb', gridcolor: '#e5e7eb' },
+                      zaxis: { title: 'Z', backgroundcolor: '#f9fafb', gridcolor: '#e5e7eb' },
+                      aspectmode: 'cube',
+                      camera: { eye: { x: 1.5, y: 1.5, z: 1.5 } }
+                    },
+                    margin: { l: 0, r: 0, b: 0, t: 0 },
+                    showlegend: true,
+                    legend: { x: 0, y: 0, orientation: 'h', bgcolor: 'rgba(255,255,255,0.5)' },
+                  }}
+                  useResizeHandler={true}
+                  style={{ width: '100%', height: '100%' }}
+                  config={{ displayModeBar: false, responsive: true }}
+                />
               </div>
             </div>
           </div>
+
         </div>
-
-        {/* COLUMNA DERECHA (GRÁFICA) */}
-        <div className="lg:col-span-2 bg-white p-6 rounded-3xl shadow-xl h-[600px] flex flex-col">
-          <h4 className="font-extrabold text-lg text-gray-700 mb-2">Historial de Movimiento 3D</h4>
-          <div className="flex-grow">
-            <Plot
-              data={[
-                {
-                  type: 'scatter3d',
-                  mode: 'lines',
-                  x: historyX, y: historyY, z: historyZ,
-                  name: 'Historial',
-                  line: { width: 4, color: '#4CAF50', opacity: 0.6 },
-                },
-                {
-                  type: 'scatter3d',
-                  mode: 'markers',
-                  x: [gyro.x], y: [gyro.y], z: [gyro.z],
-                  name: 'Actual',
-                  marker: { size: 8, color: alertImmediate ? '#E53E3E' : '#FFD700' },
-                },
-              ]}
-              layout={{
-                autosize: true,
-                scene: {
-                  xaxis: { title: 'X', backgroundcolor: '#f7f7f7' },
-                  yaxis: { title: 'Y', backgroundcolor: '#f7f7f7' },
-                  zaxis: { title: 'Z', backgroundcolor: '#f7f7f7' },
-                  aspectmode: 'cube',
-                },
-                margin: { l: 0, r: 0, b: 0, t: 0 },
-                showlegend: true,
-                legend: { orientation: 'h', y: 1.05 },
-              }}
-              useResizeHandler={true}
-              style={{ width: '100%', height: '100%' }}
-              config={{ displayModeBar: false }}
-            />
-          </div>
-        </div>
-
       </div>
     </div>
   );
